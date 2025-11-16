@@ -1,0 +1,635 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    touch-action: none;
+    user-select: none;
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #0c1e3a, #0a1429);
+    color: #e6f7ff;
+    min-height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.game-container {
+    display: flex;
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+#gameCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    outline: none;
+}
+
+/* 统一毛玻璃效果 */
+.glass-effect {
+    backdrop-filter: blur(26px) brightness(97%);
+    background-color: rgba(255, 255, 255, 0.12);
+    border-radius: 11px;
+    box-shadow: 0 0.5vh 1.5vh rgba(0, 0, 0, 0.6);
+}
+
+/* 值容器 - 左上角 */
+.values-container {
+    position: absolute;
+    top: 1.5%;
+    left: 1.5%;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8vh;
+}
+
+/* 分数显示 */
+#scoreDisplay {
+    padding: 1.2vh 1vw;
+    font-size: calc(12px + 0.8vw);
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 加速度指示器 */
+.acceleration-indicator {
+    padding: 0.8vh 1.5vw;
+    font-size: calc(10px + 0.8vw);
+    font-weight: bold;
+    color: #00ffaa;
+}
+
+/* 变形虫指示器 */
+.amoeba-indicator {
+    padding: 0.8vh 1.5vw;
+    font-size: calc(10px + 0.8vw);
+    font-weight: bold;
+    color: #ff88ff;
+    display: none;
+}
+
+/* 设置容器 - 右上角 */
+.settings-container {
+    position: absolute;
+    top: 1.5%;
+    right: 1.5%;
+    z-index: 5;
+    display: flex;
+    gap: 0.8vw;
+}
+
+/* 音乐控制按钮 */
+.music-control {
+    padding: 1.2vh 1vw;
+    font-size: calc(12px + 0.8vw);
+    font-weight: bold;
+    color: #00ffcc;
+    min-width: 40px;
+    min-height: 4vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    
+}
+
+.music-control:hover {
+    transform: scale(1.05);
+}
+
+.music-control:active {
+    transform: scale(0.95);
+}
+
+/* 视角切换按钮 - 毛玻璃效果 */
+.view-toggle-btn {
+    padding: 1.2vh 1vw;
+    font-size: calc(12px + 0.8vw);
+    font-weight: bold;
+    min-width: 80px;
+    min-height: 4vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.view-toggle-btn:hover {
+    transform: scale(1.05);
+}
+
+.view-toggle-btn:active {
+    transform: scale(0.95);
+}
+
+/* 第一人称提示 */
+.fp-indicator {
+    position: absolute;
+    top: 1.5%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.8vh 1.5vw;
+    font-size: calc(10px + 0.8vw);
+    font-weight: bold;
+    z-index: 5;
+}
+
+/* 第一人称准星 */
+.crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30px;
+    height: 30px;
+    pointer-events: none;
+    z-index: 15;
+    display: block;
+}
+
+.crosshair::before, .crosshair::after {
+    content: '';
+    position: absolute;
+    background: #00ffcc;
+    box-shadow: 0 0 5px rgba(0, 255, 200, 0.8);
+}
+
+.crosshair::before {
+    width: 4px;
+    height: 20px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.crosshair::after {
+    width: 20px;
+    height: 4px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* 地图容器 - 右下角 */
+.map-container {
+    position: absolute;
+    bottom: 2vh;
+    right: 8vw; /* 增加右边距，避免与功率控制器重叠 */
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.8vh;
+}
+
+/* 地图控件容器 */
+.map-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5vw;
+}
+
+/* 小地图标题 */
+.map-title {
+    padding: 0.8vh 1.5vw;
+    font-size: calc(8px + 0.6vw);
+    font-weight: bold;
+    color: #00ffcc;
+    text-align: center;
+}
+
+/* 地图全屏按钮 */
+.map-fullscreen-btn {
+    padding: 0.8vh 1vw;
+    font-size: calc(10px + 0.6vw);
+    font-weight: bold;
+    color: #00ffcc;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 30px;
+    min-height: 30px;
+}
+
+.map-fullscreen-btn:hover {
+    transform: scale(1.05);
+}
+
+.map-fullscreen-btn:active {
+    transform: scale(0.95);
+}
+
+/* 小地图 - 正方形 */
+.mini-map-container {
+    width: 200px;
+    height: 200px;
+    position: relative;
+}
+
+#miniMap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 11px;
+}
+
+/* 全屏模式下的地图 */
+.mini-map-container.fullscreen {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(100vw, 100vh);
+    height: min(100vw, 100vh);
+    z-index: 100;
+    
+   
+}
+
+.mini-map-container.fullscreen #miniMap {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+}
+
+.mini-map-container.fullscreen ~ .map-controls,
+.mini-map-container.fullscreen ~ .height-indicator {
+    position: fixed;
+    z-index: 101;
+   
+}
+
+.mini-map-container.fullscreen ~ .map-controls {
+    top: 2vh;
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: column;
+}
+
+.mini-map-container.fullscreen ~ .height-indicator {
+    top: 2vh;
+    right: 2vw;
+}
+
+/* 高度指示器 */
+.height-indicator {
+    color: #00ffaa;
+    font-size: calc(10px + 0.6vw);
+    padding: 0.8vh 1.5vw;
+}
+
+/* 虚拟摇杆 - 确保为圆形 */
+.joystick-container {
+    position: absolute;
+    z-index: 10;
+    left: 5%;
+    bottom: 8%;
+    touch-action: none;
+    cursor: move;
+    width: 14vw;
+    height: 14vw;
+    /* 确保为圆形 */
+    border-radius: 50% !important;
+}
+
+.joystick-base {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.joystick-head {
+    width: 50%;
+    height: 50%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00aaff, #00ffaa);
+    box-shadow: 0 0 2vh rgba(0, 200, 255, 0.7);
+    position: absolute;
+    cursor: pointer;
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: bold;
+    font-size: calc(8px + 0.8vw);
+    text-align: center;
+    text-shadow: 0 0 0.5vh rgba(0, 0, 0, 0.7);
+}
+
+.joystick-head:active {
+    transform: scale(1.1);
+}
+
+.joystick-stats {
+    font-size: calc(6px + 0.7vw);
+    text-align: center;
+    line-height: 1.2;
+}
+
+.joystick-container.active .direction-indicator {
+    opacity: 1;
+}
+
+.joystick-hint {
+    position: absolute;
+    bottom: -4.5vh;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    color: #00aaff;
+    font-size: calc(8px + 0.7vw);
+    opacity: 0.9;
+    animation: pulse 2s infinite;
+    font-weight: bold;
+}
+
+/* 垂直功率控制 - 现代化设计，添加渐变样式 */
+.power-control-vertical {
+    position: absolute;
+    right: 2vw;
+    bottom: 2vh;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 5vw;
+    height: 42vh;
+    padding: 1vw 0.5vw;
+}
+
+.power-slider-vertical {
+    height: 68%;
+    width: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.power-slider-vertical input[type="range"] {
+    writing-mode: vertical-lr;
+    direction: rtl;
+    height: 100%;
+    width: 100%;
+    border-radius: 1vw;
+    border: none;
+    margin: 0;
+    outline: none;
+    background: transparent;
+    -webkit-appearance: none;
+}
+
+/* 添加渐变轨道 */
+.power-slider-vertical input[type="range"]::-webkit-slider-track {
+    width: 0.8vw;
+    background: linear-gradient(to top, #ff0000, #0051ff);
+    border-radius: 1vw;
+    border: none;
+}
+
+.power-slider-vertical input[type="range"]::-webkit-slider-runnable-track {
+    width: 0.8vw;
+    background: linear-gradient(to top, #ff0000, #0066ff);
+    border-radius: 1vw;
+    border: none;
+}
+
+.power-slider-vertical input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 2.8vw;
+    height: 1vw;
+    border-radius: 10%;
+    background: linear-gradient(135deg, #00aaff, #00ffaa);
+    box-shadow: 0 0 1.5vh rgba(0, 200, 255, 0.7);
+    cursor: pointer;
+   
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    position: relative;
+    z-index: 2;
+}
+
+.power-slider-vertical input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 2vh rgba(0, 200, 255, 0.9);
+}
+
+/* 功率标记 */
+.power-markers {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    height: 100%;
+    width: 0.8vw;
+    z-index: 1;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.power-marker {
+    width: 1.6vw;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 1px;
+}
+
+.power-marker.medium {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1.8vw;
+    height: 3px;
+    background: rgba(0, 255, 200, 0.7);
+    box-shadow: 0 0 5px rgba(0, 255, 200, 0.5);
+}
+
+/* 功率指示器 */
+.power-indicator-vertical {
+    font-size: calc(10px + 0.7vw);
+    color: #00ffaa;
+    font-weight: bold;
+    margin-top: 1vw;
+    text-align: center;
+    width: 100%;
+    padding: 0.7vw 0;
+    letter-spacing: 0.05em;
+}
+
+/* 功率锁定按钮 */
+.power-lock-btn {
+    position: absolute;
+    top: -3.5vw;
+    right: -0.5vw;
+    width: 2.5vw;
+    height: 2.5vw;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+    font-size: calc(10px + 0.6vw);
+}
+
+.power-lock-btn.locked {
+    background: rgba(255, 85, 85, 0.2);
+    color: #ff5555;
+    box-shadow: 0 0 10px rgba(255, 85, 85, 0.5);
+}
+
+.power-lock-btn:hover {
+    transform: scale(1.1);
+}
+
+/* 游戏结束 */
+.game-over {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(5, 10, 20, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    display: none;
+}
+
+.game-over-content {
+    border-radius: 2.5vh;
+    padding: 3vh;
+    text-align: center;
+    max-width: 90%;
+    width: 35vw;
+    min-width: 280px;
+}
+
+.game-over h2 {
+    font-size: calc(20px + 2vw);
+    color: #ff3366;
+    margin-bottom: 2vh;
+    text-shadow: 0 0 1.5vh rgba(255, 50, 100, 0.7);
+}
+
+.final-score {
+    font-size: calc(18px + 1.8vw);
+    color: #00ffcc;
+    margin: 2vh 0;
+    text-shadow: 0 0 1vh rgba(0, 255, 200, 0.7);
+}
+
+.restart-btn {
+    background: linear-gradient(45deg, #00ccaa, #00a0ff);
+    border: none;
+    padding: 1.5vh 4vw;
+    font-size: calc(14px + 1.2vw);
+    border-radius: 50px;
+    color: white;
+    cursor: pointer;
+    margin-top: 2.5vh;
+    font-weight: bold;
+    box-shadow: 0 0.6vh 2vh rgba(0, 200, 255, 0.7);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.restart-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0.8vh 2.5vh rgba(0, 200, 255, 0.8);
+}
+
+.restart-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 0.3vh 1.2vh rgba(0, 200, 255, 0.4);
+}
+
+/* 暂停界面 */
+.pause-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 0;
+    display: none;
+}
+
+.pause-text {
+    font-size: calc(20px + 3vw);
+    color: #00ffcc;
+    text-shadow: 0 0 2vh rgba(0, 255, 200, 0.8);
+    animation: pulse 2s infinite;
+    padding: 2vh 3vw;
+}
+
+.loading-text {
+    color: #00ffcc;
+    font-size: calc(18px + 2.5vw);
+    text-shadow: 0 0 1.5vh rgba(0, 255, 200, 0.8);
+    animation: pulse 2s infinite;
+    padding: 2vh 3vw;
+}
+
+/* 触摸控制面板 */
+.touch-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    display: block;
+}
+
+.touch-left {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 50%;
+    height: 100%;
+}
+
+.touch-right {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 50%;
+    height: 100%;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
+}
+
+

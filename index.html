@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 正确引入Three.js和相关库 -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.137.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.137.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.137.0/examples/js/loaders/GLTFLoader.js"></script>
+    
+    <!-- 后期处理库 -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.137.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.137.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.137.0/examples/js/postprocessing/ShaderPass.js"></script>
+    
+    <!-- 必需的着色器 -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.137.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.137.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    
+    <!-- 后期处理效果 -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.137.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.137.0/examples/js/shaders/VignetteShader.js"></script>
+
+    <title>3D贪吃蛇：浮游世界大冒险 - 第一人称模式</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div id="gameCanvas" tabindex="0"></div>
+        
+        <!-- 值容器 - 左上角 -->
+        <div class="values-container">
+            <!-- 分数显示 -->
+            <div id="scoreDisplay" class="glass-effect">🧬: 0</div>
+            
+            <!-- 加速度指示器 -->
+            <div class="acceleration-indicator glass-effect" id="accelerationIndicator">📈: 0.0x</div>
+            
+            <!-- 变形虫指示器 -->
+            <div class="amoeba-indicator glass-effect" id="amoebaIndicator">变形虫: 5</div>
+        </div>
+        
+        <!-- 设置容器 - 右上角 -->
+        <div class="settings-container">
+            <!-- 音乐控制按钮 -->
+            <div class="music-control glass-effect" id="musicControlBtn">🔊</div>
+            
+            <!-- 视角切换按钮 -->
+            <div class="view-toggle-btn glass-effect" id="viewToggleBtn">🎥V</div>
+        </div>
+        
+        <!-- 第一人称提示 -->
+        <div class="fp-indicator glass-effect" id="fpIndicator" style="display: block;"> 👁️/🎥 <u>V</u></div>
+        
+        <!-- 第一人称准星 -->
+        <div class="crosshair" id="crosshair"></div>
+        
+        <!-- 地图容器 - 右下角 -->
+        <div class="map-container">
+            <div class="map-controls">
+                <div class="map-title glass-effect">蛇头所在XZ平面视图</div>
+                <div class="map-fullscreen-btn glass-effect" id="mapFullscreenBtn">⛶</div>
+            </div>
+            <div class="mini-map-container glass-effect">
+                <canvas id="miniMap"></canvas>
+            </div>
+            <div class="height-indicator glass-effect">y: 0</div>
+        </div>
+        
+        <!-- 虚拟摇杆 -->
+        <div class="joystick-container glass-effect" id="joystickContainer">
+            <div class="drag-handle">↕</div>
+            <div class="joystick-base">
+                <div class="joystick-head" id="joystickHead" style="transform: translate(-1.94643px, -16.3393px); top: 3px; left: 21px;">
+                    <div class="joystick-stats">0°<br>50%</div>
+                </div>
+                <div class="direction-indicator" id="directionIndicator">↑ 0°</div>
+            </div>
+        </div>
+        
+        <!-- 垂直功率控制（档把模式） -->
+        <div class="power-control-vertical glass-effect" id="powerControlVertical">
+            <div class="power-slider-vertical">
+                <div class="power-snap-indicator"></div>
+                <div class="power-markers">
+                    <div class="power-marker low"></div>
+                    <div class="power-marker medium"></div>
+                    <div class="power-marker high"></div>
+                </div>
+                <input type="range" min="0" max="100" value="50" id="powerSliderVertical" orient="vertical">
+                <div class="power-gear" id="powerGear">P</div>
+                <div class="power-lock-btn" id="powerLockBtn">🔓</div>
+            </div>
+            <div class="power-indicator-vertical" id="powerIndicatorVertical">0.50</div>
+        </div>
+        
+        <!-- 游戏结束 -->
+        <div class="game-over" id="gameOver">
+            <div class="game-over-content glass-effect">
+                <h2>游戏结束!</h2>
+                <div class="final-score">分数: <span id="finalScore">0</span></div>
+                <button class="restart-btn" id="restartBtn">重新开始</button>
+            </div>
+        </div>
+        
+        <!-- 暂停界面 -->
+        <div class="pause-overlay" id="pauseOverlay">
+            <div class="pause-text glass-effect">游戏暂停</div>
+        </div>
+        
+        <!-- 触摸控制区域 -->
+        <div class="touch-controls" id="touchControls">
+            <div class="touch-left" id="touchLeft"></div>
+            <div class="touch-right" id="touchRight"></div>
+        </div>
+    </div>
+
+    <!-- 音频元素 -->
+    <audio id="bgm" loop>
+        <source src="BGM.MP3" type="audio/mpeg">
+    </audio>
+    <!-- 吞噬音效 -->
+    <audio id="eatSound">
+        <source src="EAT.MP3" type="audio/mpeg">
+    </audio>
+</body>
+<script type="text/javascript" src="game.js"></script>
+<script type="text/javascript" src="entities.js"></script>
+</html>
