@@ -15,3 +15,9 @@ Open the `index.html` file in your browser to run the game.
 本项目采用 MIT 许可证。
 
 This project is licensed under the MIT License.
+
+### QA
+
+Q: 1. cdn.jsdelivr.net无法加载成功
+
+A: 1. 将所有 cdn.jsdelivr.net 修改为 fastly.jsdelivr.net,即可
